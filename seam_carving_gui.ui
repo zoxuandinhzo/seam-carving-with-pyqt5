@@ -221,7 +221,7 @@
          <property name="minimumSize">
           <size>
            <width>220</width>
-           <height>150</height>
+           <height>160</height>
           </size>
          </property>
          <property name="title">
@@ -231,7 +231,7 @@
           <property name="geometry">
            <rect>
             <x>120</x>
-            <y>110</y>
+            <y>120</y>
             <width>81</width>
             <height>28</height>
            </rect>
@@ -244,7 +244,7 @@
           <property name="geometry">
            <rect>
             <x>40</x>
-            <y>80</y>
+            <y>90</y>
             <width>91</width>
             <height>16</height>
            </rect>
@@ -257,7 +257,7 @@
           <property name="geometry">
            <rect>
             <x>140</x>
-            <y>80</y>
+            <y>90</y>
             <width>51</width>
             <height>18</height>
            </rect>
@@ -279,7 +279,7 @@
           <property name="geometry">
            <rect>
             <x>20</x>
-            <y>110</y>
+            <y>120</y>
             <width>81</width>
             <height>28</height>
            </rect>
@@ -318,13 +318,26 @@
           <property name="geometry">
            <rect>
             <x>20</x>
-            <y>50</y>
+            <y>40</y>
             <width>191</width>
             <height>20</height>
            </rect>
           </property>
           <property name="text">
            <string>Seam removal horizontally</string>
+          </property>
+         </widget>
+         <widget class="QCheckBox" name="ckb_ratio">
+          <property name="geometry">
+           <rect>
+            <x>20</x>
+            <y>60</y>
+            <width>171</width>
+            <height>20</height>
+           </rect>
+          </property>
+          <property name="text">
+           <string>Keep the ratio</string>
           </property>
          </widget>
         </widget>
@@ -560,7 +573,7 @@
                <x>0</x>
                <y>0</y>
                <width>218</width>
-               <height>241</height>
+               <height>231</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout">

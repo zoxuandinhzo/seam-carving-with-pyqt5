@@ -1,7 +1,7 @@
 from os import pardir
 import sys
 from PyQt5.QtCore import QPoint, Qt, QThread, QSize, QRect
-from PyQt5.QtWidgets import QGroupBox, QMainWindow, QApplication, QPushButton, QCheckBox, QLabel, QFileDialog, QSpinBox, QComboBox, QCheckBox, QScrollArea, QWidget
+from PyQt5.QtWidgets import QGroupBox, QMainWindow, QApplication, QPushButton, QCheckBox, QLabel, QFileDialog, QSpinBox, QComboBox, QCheckBox, QScrollArea, QWidget, QMessageBox
 from PyQt5 import uic
 from PyQt5.QtGui import QPainter, QPen, QPixmap, QImage, QColor
 import numpy as np
@@ -13,15 +13,16 @@ class MainBackgroundThread(QThread):
     def __init__(self):
         QThread.__init__(self)
         self.im = self.dx = self.dy = self.mode = self.vis = self.vismask = None
-        self.vismap = self.mask = self.rmask = self.hremove = self.output = None
+        self.vismap = self.mask = self.rmask = self.hremove = self.kratio = self.output = None
 
-    def setting(self, im, dx, dy, mask, rmask, hremove, mode, vis, vismask, vismap):
+    def setting(self, im, dx, dy, mask, rmask, hremove, kratio, mode, vis, vismask, vismap):
         self.im = im
         self.dx = dx
         self.dy = dy
         self.mask = mask
         self.rmask = rmask
         self.hremove = hremove
+        self.kratio = kratio
         self.mode = mode
         self.vis = vis
         self.vismask = vismask
@@ -31,7 +32,7 @@ class MainBackgroundThread(QThread):
         return self.output
 
     def run(self):
-        self.output = run_seam_carving(self.im, self.dx, self.dy,  mask=self.mask, rmask=self.rmask, hremove=self.hremove, mode=self.mode, vis=self.vis, vismask=self.vismask, vismap=self.vismap)
+        self.output = run_seam_carving(self.im, self.dx, self.dy,  mask=self.mask, rmask=self.rmask, hremove=self.hremove, kratio=self.kratio, mode=self.mode, vis=self.vis, vismask=self.vismask, vismap=self.vismap)
         if self.output is not None:
             self.output = self.output.astype(np.uint8)
 
@@ -49,6 +50,7 @@ class UI(QMainWindow):
         self.ckbProtect = self.findChild(QCheckBox, 'ckb_protect')
         self.ckbRemove = self.findChild(QCheckBox, 'ckb_remove')
         self.ckbHremove = self.findChild(QCheckBox, 'ckb_hremove')
+        self.ckbRatio = self.findChild(QCheckBox, 'ckb_ratio')
         self.wgImg = self.findChild(QWidget, 'wg_img')
         self.lbImg = self.findChild(QLabel, 'lb_img')
         self.lbMask = self.findChild(QLabel, 'lb_mask')
@@ -144,8 +146,9 @@ class UI(QMainWindow):
         mask = self.getMask(self.Imask, 255)
         rmask = self.getMask(self.Imask, 0)
         hremove = self.ckbHremove.isChecked()
+        kratio = self.ckbRatio.isChecked()
         self.saveConfigInput = {'dx':dx, 'dy':dy, 'imask':self.Imask.copy(), 'hremove':hremove}
-        self.worker.setting(im, dx, dy, mask, rmask, hremove, mode, vis, vismask, vismap)
+        self.worker.setting(im, dx, dy, mask, rmask, hremove, kratio, mode, vis, vismask, vismap)
         self.worker.start()
 
     def CompareImg(self, event):
@@ -290,6 +293,15 @@ class UI(QMainWindow):
 
     def setBrushSize(self, x):
         self.brushSize = x
+
+    def closeEvent(self, event):
+        reply = QMessageBox.question(self, 'Message',
+            "Are you sure to quit?", QMessageBox.Yes |
+            QMessageBox.No)
+        if reply == QMessageBox.Yes:
+            event.accept()
+        else:
+            event.ignore()
 
 def ArrayToQPixmap(cv_img):
     """Convert from an opencv image to QPixmap"""

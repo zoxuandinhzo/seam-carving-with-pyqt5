@@ -289,7 +289,7 @@ def seam_carve(im, dy, dx, mask=None, vis=False):
     return output
 
 
-def object_removal(im, rmask, mask=None, vis=False, horizontal_removal=False):
+def object_removal(im, rmask, mask=None, vis=False, horizontal_removal=False, keep_ratio=False):
     im = im.astype(np.float64)
     rmask = rmask.astype(np.float64)
     if mask is not None:
@@ -312,16 +312,18 @@ def object_removal(im, rmask, mask=None, vis=False, horizontal_removal=False):
         rmask = remove_seam_grayscale(rmask, boolmask)
         if mask is not None:
             mask = remove_seam_grayscale(mask, boolmask)
+    
+    if keep_ratio:
+        num_add = (h if horizontal_removal else w) - output.shape[1]
+        output, mask = seams_insertion(output, num_add, mask, vis, rot=horizontal_removal)
 
-    num_add = (h if horizontal_removal else w) - output.shape[1]
-    output, mask = seams_insertion(output, num_add, mask, vis, rot=horizontal_removal)
     if horizontal_removal:
         output = rotate_image(output, False)
 
     return output        
 
 
-def run_seam_carving(im, dx=0, dy=0, mask=None, rmask=None, hremove=False, mode='Forward', vis=False, vismask=False, vismap=False, downsize=True):
+def run_seam_carving(im, dx=0, dy=0, mask=None, rmask=None, hremove=False, kratio=False, mode='Forward', vis=False, vismask=False, vismap=False, downsize=True):
 
     global USE_FORWARD_ENERGY, SHOW_ENERGY_MAP
     if mode=='Forward':
@@ -358,7 +360,7 @@ def run_seam_carving(im, dx=0, dy=0, mask=None, rmask=None, hremove=False, mode=
 
     # object removal mode
     if rmask is not None:
-        output = object_removal(im, rmask, mask, vis, hremove)
+        output = object_removal(im, rmask, mask, vis, hremove, kratio)
 
     # image resize mode
     if dx!=0 or dy!=0:
