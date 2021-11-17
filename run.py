@@ -177,10 +177,21 @@ class UI(QMainWindow):
     def mousePressEvent(self, event):
         # if left mouse button is pressed
         if event.button() == Qt.LeftButton:
+            if not self.lbMask.isVisible():
+                return
             # make drawing flag true
             self.drawing = True
             # make last point to the point of cursor
             self.lastPoint = event.pos()
+
+            # creating painter object
+            painter = QPainter(self.Imask)
+            # set the pen of the painter
+            painter.setPen(QPen(self.brushColor, self.brushSize,
+                            Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+            painter.drawPoint(event.pos())
+            # update
+            self.updateMask()
 
     def mouseMoveEvent(self, event):
         # checking if left button is pressed and drawing flag is true
