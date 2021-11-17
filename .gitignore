@@ -1,3 +1,5 @@
 temp*.py
 .vscode/
 __pycache__/
+.favorites.json
+.qt_for_python/

@@ -13,9 +13,9 @@ class MainBackgroundThread(QThread):
     def __init__(self):
         QThread.__init__(self)
         self.im = self.dx = self.dy = self.mode = self.vis = self.vismask = None
-        self.mask = self.rmask = self.hremove = self.output = None
+        self.vismap = self.mask = self.rmask = self.hremove = self.output = None
 
-    def setting(self, im, dx, dy, mask, rmask, hremove, mode, vis, vismask):
+    def setting(self, im, dx, dy, mask, rmask, hremove, mode, vis, vismask, vismap):
         self.im = im
         self.dx = dx
         self.dy = dy
@@ -25,12 +25,13 @@ class MainBackgroundThread(QThread):
         self.mode = mode
         self.vis = vis
         self.vismask = vismask
+        self.vismap = vismap
 
     def getResult(self):
         return self.output
 
     def run(self):
-        self.output = run_seam_carving(self.im, self.dx, self.dy,  mask=self.mask, rmask=self.rmask, hremove=self.hremove, mode=self.mode, vis=self.vis, vismask=self.vismask)
+        self.output = run_seam_carving(self.im, self.dx, self.dy,  mask=self.mask, rmask=self.rmask, hremove=self.hremove, mode=self.mode, vis=self.vis, vismask=self.vismask, vismap=self.vismap)
         if self.output is not None:
             self.output = self.output.astype(np.uint8)
 
@@ -57,6 +58,8 @@ class UI(QMainWindow):
         self.cmbMode = self.findChild(QComboBox, 'cmb_mode')
         self.ckbProcess = self.findChild(QCheckBox, 'ckb_process')
         self.ckbMask = self.findChild(QCheckBox, 'ckb_mask')
+        self.ckbMap = self.findChild(QCheckBox, 'ckb_energy_map')
+        self.ckbASeam = self.findChild(QCheckBox, 'ckb_all_seam')
         self.lbInfor = self.findChild(QLabel, 'lb_infor')
         self.scrBar = self.findChild(QScrollArea, 'scr_area').verticalScrollBar()
         self.gbMask = self.findChild(QGroupBox, 'gb_mask')
@@ -77,7 +80,8 @@ class UI(QMainWindow):
         self.worker.finished.connect(self.onFinished)
         self.lbMask.setGeometry(self.lbImg.rect())
         self.lbMask.hide()
-        
+        self.ckbASeam.hide() ######chưa cài đặt nên tạm ẩm
+
         #khởi tạo các biến
         #lưu ảnh dưới dạng np.array
         self.img_in = None
@@ -132,6 +136,7 @@ class UI(QMainWindow):
         mode = self.cmbMode.currentText()
         vis = self.ckbProcess.isChecked()
         vismask = self.ckbMask.isChecked()
+        vismap = self.ckbMap.isChecked()
         if self.imgShowing == 'in':
             im = self.img_in
         else:
@@ -140,7 +145,7 @@ class UI(QMainWindow):
         rmask = self.getMask(self.Imask, 0)
         hremove = self.ckbHremove.isChecked()
         self.saveConfigInput = {'dx':dx, 'dy':dy, 'imask':self.Imask.copy(), 'hremove':hremove}
-        self.worker.setting(im, dx, dy, mask, rmask, hremove, mode, vis, vismask)
+        self.worker.setting(im, dx, dy, mask, rmask, hremove, mode, vis, vismask, vismap)
         self.worker.start()
 
     def CompareImg(self, event):

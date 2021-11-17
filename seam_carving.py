@@ -17,6 +17,7 @@ DOWNSIZE_WIDTH = 500                      # resized image width if SHOULD_DOWNSI
 ENERGY_MASK_CONST = 100000.0              # large energy value for protective masking
 MASK_THRESHOLD = 10                       # minimum pixel intensity for binary mask
 USE_FORWARD_ENERGY = True                 # if True, use forward energy algorithm
+SHOW_ENERGY_MAP = False
 
 ########################################
 # UTILITY CODE
@@ -30,7 +31,6 @@ def visualize(im, boolmask=None, rotate=False):
         vis = rotate_image(vis, False)
     cv2.imshow("visualization", vis)
     cv2.waitKey(1)
-    return vis
 
 def resize(image, width):
     dim = None
@@ -55,8 +55,9 @@ def backward_energy(im):
     
     grad_mag = np.sqrt(np.sum(xgrad**2, axis=2) + np.sum(ygrad**2, axis=2))
 
-    # vis = visualize(grad_mag)
-    # cv2.imwrite("backward_energy_demo.jpg", vis)
+    if SHOW_ENERGY_MAP:
+        cv2.imshow("Energy map", grad_mag.astype(np.uint8))
+        cv2.waitKey(1)
 
     return grad_mag
 
@@ -95,8 +96,9 @@ def forward_energy(im):
         m[i] = np.choose(argmins, mULR)
         energy[i] = np.choose(argmins, cULR)
     
-    # vis = visualize(energy)
-    # cv2.imwrite("forward_energy_demo.jpg", vis)     
+    if SHOW_ENERGY_MAP:
+        cv2.imshow("Energy map", energy.astype(np.uint8))
+        cv2.waitKey(1) 
         
     return energy
 
@@ -319,14 +321,18 @@ def object_removal(im, rmask, mask=None, vis=False, horizontal_removal=False):
     return output        
 
 
-def run_seam_carving(im, dx=0, dy=0, mask=None, rmask=None, hremove=False, mode='Forward', vis=False, vismask=False, downsize=True):
+def run_seam_carving(im, dx=0, dy=0, mask=None, rmask=None, hremove=False, mode='Forward', vis=False, vismask=False, vismap=False, downsize=True):
 
-    global USE_FORWARD_ENERGY
+    global USE_FORWARD_ENERGY, SHOW_ENERGY_MAP
     if mode=='Forward':
         USE_FORWARD_ENERGY = True
     else:
         USE_FORWARD_ENERGY = False
 
+    if vismap:
+        SHOW_ENERGY_MAP = True
+    else:
+        SHOW_ENERGY_MAP = False
 
     # downsize image for faster processing
     h, w = im.shape[:2]
