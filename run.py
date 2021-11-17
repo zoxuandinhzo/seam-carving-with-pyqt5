@@ -12,8 +12,8 @@ import cv2
 class MainBackgroundThread(QThread):
     def __init__(self):
         QThread.__init__(self)
-        self.im=self.dx=self.dy=self.mode=self.vis=self.output = None
-        self.mask=self.rmask=self.hremove = None
+        self.im = self.dx = self.dy = self.mode = self.vis = None
+        self.mask = self.rmask = self.hremove = self.output = None
 
     def setting(self, im, dx, dy, mask, rmask, hremove, mode, vis):
         self.im = im
@@ -49,8 +49,7 @@ class UI(QMainWindow):
         self.ckbHremove = self.findChild(QCheckBox, 'ckb_hremove')
         self.wgImg = self.findChild(QWidget, 'wg_img')
         self.lbImg = self.findChild(QLabel, 'lb_img')
-        self.lbPmask = self.findChild(QLabel, 'lb_pmask')
-        self.lbRmask = self.findChild(QLabel, 'lb_rmask')
+        self.lbMask = self.findChild(QLabel, 'lb_mask')
         self.sbCols = self.findChild(QSpinBox, 'sb_cols')
         self.sbRows = self.findChild(QSpinBox, 'sb_rows')
         self.sbSize = self.findChild(QSpinBox, 'sb_size')
@@ -68,31 +67,23 @@ class UI(QMainWindow):
         self.btRun.clicked.connect(self.RunSeam)
         self.btClr.clicked.connect(self.ClearMask)
         self.btUndo.clicked.connect(self.UndoMask)
-        self.ckbProtect.clicked.connect(self.TogglePmask)
-        self.ckbRemove.clicked.connect(self.ToggleRmask)
+        self.ckbProtect.clicked.connect(self.ToggleProtect)
+        self.ckbRemove.clicked.connect(self.ToggleRemove)
         self.sbSize.valueChanged.connect(lambda x: self.setBrushSize(x))
         self.scrBar.rangeChanged.connect(lambda x,y: self.scrBar.setValue(y))
         self.worker.finished.connect(self.onFinished)
-
-
-        # self.lbImg.mousePressEvent = self.getPixel
-        self.lbPmask.setGeometry(self.lbImg.rect())
-        self.lbRmask.setGeometry(self.lbImg.rect())
-        self.lbPmask.hide()
-        self.lbRmask.hide()
-        # self.lbImg.mousePressEvent = self.getPixel
+        self.lbMask.setGeometry(self.lbImg.rect())
+        self.lbMask.hide()
         
         #khởi tạo các biến
         #lưu ảnh dưới dạng np.array
         self.img_in = None
         self.img_out = None
 
-        #tạo 2 qimage để vẽ cho lbmask và lbrmask
-        self.Ipmask = QImage(self.lbImg.size(), QImage.Format_ARGB32)
-        self.Irmask = QImage(self.lbRmask.size(), QImage.Format_ARGB32)
+        #tạo qimage để vẽ ảnh cho lbmask
+        self.Imask = QImage(self.lbImg.size(), QImage.Format_ARGB32)
         self.bgColor = QColor(0, 255, 255, 50)
         self.drawing = False
-        self.drawOn = None
         self.brushSize = 10
         self.brushColor = Qt.black
         self.lastPoint = QPoint()
@@ -134,34 +125,27 @@ class UI(QMainWindow):
         mode = self.cmbMode.currentText()
         vis = self.ckbVis.isChecked()
         im = self.img_in
-        mask = self.getMask(self.Ipmask)
-        rmask = self.getMask(self.Irmask)
+        mask = self.getMask(self.Imask, 255)
+        rmask = self.getMask(self.Imask, 0)
         hremove = self.ckbHremove.isChecked()
-        # print(im.shape, mask.shape)
         self.worker.setting(im, dx, dy, mask, rmask, hremove, mode, vis)
         self.worker.start()
 
-    def TogglePmask(self):
+    def ToggleProtect(self):
         if self.ckbProtect.isChecked():
-            self.ckbRemove.setCheckState(0) 
-            self.lbRmask.hide()
-            self.lbPmask.show()
+            self.ckbRemove.setCheckState(0)
+            self.lbMask.show()
             self.brushColor = Qt.white
-            self.drawOn = self.Ipmask
         else:
-            self.drawOn = None
-            self.lbPmask.hide()
+            self.lbMask.hide()
 
-    def ToggleRmask(self):
+    def ToggleRemove(self):
         if self.ckbRemove.isChecked():
-            self.ckbProtect.setCheckState(0) 
-            self.lbPmask.hide()
-            self.lbRmask.show()
+            self.ckbProtect.setCheckState(0)
+            self.lbMask.show()
             self.brushColor = Qt.black
-            self.drawOn = self.Irmask
         else:
-            self.drawOn = None
-            self.lbRmask.hide()
+            self.lbMask.hide()
 
     def onFinished(self):
         self.img_out = self.worker.getResult()
@@ -178,35 +162,17 @@ class UI(QMainWindow):
         self.resetMask()
 
     def resetMask(self):
-        self.drawOn = None
-        #protect mask
-        self.ckbProtect.setCheckState(0) 
-        self.lbPmask.hide()
-        self.lbPmask.resize(self.lbImg.size())
-        self.Ipmask = self.Ipmask.scaled(self.lbImg.size())
-        self.Ipmask.fill(self.bgColor)
-        self.lbPmask.setPixmap(QPixmap.fromImage(self.Ipmask))
-
-        #remove mask
+        self.ckbProtect.setCheckState(0)
         self.ckbRemove.setCheckState(0) 
-        self.lbRmask.hide()
-        self.lbRmask.resize(self.lbImg.size())
-        self.Irmask = self.Irmask.scaled(self.lbImg.size())
-        self.Irmask.fill(self.bgColor)
-        self.lbRmask.setPixmap(QPixmap.fromImage(self.Irmask))
-
-        # print(self.Ipmask.size(), self.Irmask.size(), self.lbImg.size())
+        self.lbMask.hide()
+        self.lbMask.resize(self.lbImg.size())
+        self.Imask = self.Imask.scaled(self.lbImg.size())
+        self.Imask.fill(self.bgColor)
+        self.lbMask.setPixmap(QPixmap.fromImage(self.Imask))
 
     def showInfor(self, new):
         old = self.lbInfor.text()
         self.lbInfor.setText(old+'\n---------------------------------------\n'+new)
-
-    def getPixel(self, event):
-        x = event.pos().x()
-        y = event.pos().y()
-        print(x, y)
-
-        # return x, y
 
     def mousePressEvent(self, event):
         # if left mouse button is pressed
@@ -219,10 +185,8 @@ class UI(QMainWindow):
     def mouseMoveEvent(self, event):
         # checking if left button is pressed and drawing flag is true
         if (event.buttons() & Qt.LeftButton) & self.drawing:
-            if self.drawOn is None:
-                return
             # creating painter object
-            painter = QPainter(self.drawOn)
+            painter = QPainter(self.Imask)
             # set the pen of the painter
             painter.setPen(QPen(self.brushColor, self.brushSize,
                             Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
@@ -240,13 +204,14 @@ class UI(QMainWindow):
             # make drawing flag false
             self.drawing = False
 
-    def getMask(self, img):
+    def getMask(self, img, type):
         w = img.width()
         h = img.height()
         b = img.bits()
         b.setsize(w * h * 4)
-        arr = np.frombuffer(b, dtype=np.uint8).reshape((h, w, 4)) 
-        if img is self.Ipmask:
+        arr = np.frombuffer(b, dtype=np.uint8).reshape((h, w, 4))
+
+        if type == 255:
             arr = arr[:,:,2:3]
         else:
             arr = arr[:,:,0:1]
@@ -258,24 +223,17 @@ class UI(QMainWindow):
         return arr_gray
 
     def ClearMask(self):
-        if self.drawOn is None:
-            return
-        self.drawOn.fill(self.bgColor)
+        self.Imask.fill(self.bgColor)
         self.updateMask()
 
     def UndoMask(self):
-        if self.drawOn is None:
-            return
-        self.drawOn.fill(self.bgColor)
+        # self.Imask.fill(self.bgColor)
         self.updateMask()
         return
 
     def updateMask(self):
-        pixmap = QPixmap.fromImage(self.drawOn)
-        if self.drawOn is self.Ipmask:
-            self.lbPmask.setPixmap(pixmap)
-        else:
-            self.lbRmask.setPixmap(pixmap)
+        pixmap = QPixmap.fromImage(self.Imask)
+        self.lbMask.setPixmap(pixmap)
 
     def setBrushSize(self, x):
         self.brushSize = x

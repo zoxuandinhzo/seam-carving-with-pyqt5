@@ -99,26 +99,13 @@
         <number>10</number>
        </property>
       </widget>
-      <widget class="QLabel" name="lb_pmask">
+      <widget class="QLabel" name="lb_mask">
        <property name="geometry">
         <rect>
          <x>0</x>
          <y>0</y>
          <width>281</width>
          <height>171</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string/>
-       </property>
-      </widget>
-      <widget class="QLabel" name="lb_rmask">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>151</width>
-         <height>191</height>
         </rect>
        </property>
        <property name="text">

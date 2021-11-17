@@ -332,11 +332,13 @@ def run_seam_carving(im, dx=0, dy=0, mask=None, rmask=None, hremove=False, mode=
     h, w = im.shape[:2]
     if mask is not None:
         mask = cv2.resize(mask, (w,h))
-        print(im.shape, mask.shape)
+        cv2.imshow('Protect Mask', mask)
+        cv2.waitKey(1)
     if rmask is not None:
         rmask = cv2.resize(rmask, (w,h))
-        print(im.shape, rmask.shape)
-
+        cv2.imshow('Remove Mask', rmask)
+        cv2.waitKey(1)
+    
     if downsize and w > DOWNSIZE_WIDTH:
         im = resize(im, width=DOWNSIZE_WIDTH)
         if mask is not None:
@@ -348,13 +350,14 @@ def run_seam_carving(im, dx=0, dy=0, mask=None, rmask=None, hremove=False, mode=
 
     # object removal mode
     if rmask is not None:
-        cv2.imshow('rmask', rmask)
-        cv2.waitKey(1)
         output = object_removal(im, rmask, mask, vis, hremove)
 
     # image resize mode
     if dx!=0 or dy!=0:
-        output = seam_carve(im, dy, dx, mask, vis)
+        if output is not None:
+            output = seam_carve(output, dy, dx, mask, vis)
+        else:
+            output = seam_carve(im, dy, dx, mask, vis)
     cv2.destroyAllWindows()
 
     return output
