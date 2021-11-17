@@ -3,3 +3,4 @@ temp*.py
 __pycache__/
 .favorites.json
 .qt_for_python/
+seam_carving_gui.py
