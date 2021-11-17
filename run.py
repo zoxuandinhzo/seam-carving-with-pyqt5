@@ -81,6 +81,7 @@ class UI(QMainWindow):
         self.img_out = None
 
         #tạo qimage để vẽ ảnh cho lbmask
+        self.listImask = []
         self.Imask = QImage(self.lbImg.size(), QImage.Format_ARGB32)
         self.bgColor = QColor(0, 255, 255, 50)
         self.drawing = False
@@ -168,6 +169,7 @@ class UI(QMainWindow):
         self.lbMask.resize(self.lbImg.size())
         self.Imask = self.Imask.scaled(self.lbImg.size())
         self.Imask.fill(self.bgColor)
+        self.listImask = [self.Imask.copy()]
         self.lbMask.setPixmap(QPixmap.fromImage(self.Imask))
 
     def showInfor(self, new):
@@ -213,6 +215,7 @@ class UI(QMainWindow):
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
             # make drawing flag false
+            self.listImask.append(self.Imask.copy())
             self.drawing = False
 
     def getMask(self, img, type):
@@ -235,12 +238,14 @@ class UI(QMainWindow):
 
     def ClearMask(self):
         self.Imask.fill(self.bgColor)
+        self.listImask.append(self.Imask.copy())
         self.updateMask()
 
     def UndoMask(self):
-        # self.Imask.fill(self.bgColor)
-        self.updateMask()
-        return
+        if len(self.listImask)>1:
+            self.listImask.pop()
+            self.Imask=self.listImask[-1]
+            self.updateMask()
 
     def updateMask(self):
         pixmap = QPixmap.fromImage(self.Imask)
