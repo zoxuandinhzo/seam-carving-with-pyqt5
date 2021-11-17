@@ -319,7 +319,7 @@ def object_removal(im, rmask, mask=None, vis=False, horizontal_removal=False):
     return output        
 
 
-def run_seam_carving(im, dx=0, dy=0, mask=None, rmask=None, hremove=False, mode='Forward', vis=False, downsize=True):
+def run_seam_carving(im, dx=0, dy=0, mask=None, rmask=None, hremove=False, mode='Forward', vis=False, vismask=False, downsize=True):
 
     global USE_FORWARD_ENERGY
     if mode=='Forward':
@@ -332,12 +332,14 @@ def run_seam_carving(im, dx=0, dy=0, mask=None, rmask=None, hremove=False, mode=
     h, w = im.shape[:2]
     if mask is not None:
         mask = cv2.resize(mask, (w,h))
-        cv2.imshow('Protect Mask', mask)
-        cv2.waitKey(1)
+        if vismask:
+            cv2.imshow('Protect Mask', mask)
+            cv2.waitKey(1)
     if rmask is not None:
         rmask = cv2.resize(rmask, (w,h))
-        cv2.imshow('Remove Mask', rmask)
-        cv2.waitKey(1)
+        if vismask:
+            cv2.imshow('Remove Mask', rmask)
+            cv2.waitKey(1)
     
     if downsize and w > DOWNSIZE_WIDTH:
         im = resize(im, width=DOWNSIZE_WIDTH)

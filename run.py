@@ -12,10 +12,10 @@ import cv2
 class MainBackgroundThread(QThread):
     def __init__(self):
         QThread.__init__(self)
-        self.im = self.dx = self.dy = self.mode = self.vis = None
+        self.im = self.dx = self.dy = self.mode = self.vis = self.vismask = None
         self.mask = self.rmask = self.hremove = self.output = None
 
-    def setting(self, im, dx, dy, mask, rmask, hremove, mode, vis):
+    def setting(self, im, dx, dy, mask, rmask, hremove, mode, vis, vismask):
         self.im = im
         self.dx = dx
         self.dy = dy
@@ -24,12 +24,13 @@ class MainBackgroundThread(QThread):
         self.hremove = hremove
         self.mode = mode
         self.vis = vis
+        self.vismask = vismask
 
     def getResult(self):
         return self.output
 
     def run(self):
-        self.output = run_seam_carving(self.im, self.dx, self.dy,  mask=self.mask, rmask=self.rmask, hremove=self.hremove, mode=self.mode, vis=self.vis)
+        self.output = run_seam_carving(self.im, self.dx, self.dy,  mask=self.mask, rmask=self.rmask, hremove=self.hremove, mode=self.mode, vis=self.vis, vismask=self.vismask)
         if self.output is not None:
             self.output = self.output.astype(np.uint8)
 
@@ -54,7 +55,8 @@ class UI(QMainWindow):
         self.sbRows = self.findChild(QSpinBox, 'sb_rows')
         self.sbSize = self.findChild(QSpinBox, 'sb_size')
         self.cmbMode = self.findChild(QComboBox, 'cmb_mode')
-        self.ckbVis = self.findChild(QCheckBox, 'ckb_vis')
+        self.ckbProcess = self.findChild(QCheckBox, 'ckb_process')
+        self.ckbMask = self.findChild(QCheckBox, 'ckb_mask')
         self.lbInfor = self.findChild(QLabel, 'lb_infor')
         self.scrBar = self.findChild(QScrollArea, 'scr_area').verticalScrollBar()
         self.gbMask = self.findChild(QGroupBox, 'gb_mask')
@@ -81,6 +83,7 @@ class UI(QMainWindow):
         self.img_in = None
         self.img_out = None
         self.imgShowing = None
+        self.saveConfigInput = None
 
         #tạo qimage để vẽ ảnh cho lbmask
         self.listImask = []
@@ -127,7 +130,8 @@ class UI(QMainWindow):
         dx = self.sbCols.value()
         dy = self.sbRows.value()
         mode = self.cmbMode.currentText()
-        vis = self.ckbVis.isChecked()
+        vis = self.ckbProcess.isChecked()
+        vismask = self.ckbMask.isChecked()
         if self.imgShowing == 'in':
             im = self.img_in
         else:
@@ -135,7 +139,8 @@ class UI(QMainWindow):
         mask = self.getMask(self.Imask, 255)
         rmask = self.getMask(self.Imask, 0)
         hremove = self.ckbHremove.isChecked()
-        self.worker.setting(im, dx, dy, mask, rmask, hremove, mode, vis)
+        self.saveConfigInput = {'dx':dx, 'dy':dy, 'imask':self.Imask.copy(), 'hremove':hremove}
+        self.worker.setting(im, dx, dy, mask, rmask, hremove, mode, vis, vismask)
         self.worker.start()
 
     def CompareImg(self, event):
@@ -147,6 +152,14 @@ class UI(QMainWindow):
         else:
             self.showImage(self.img_in)
             self.imgShowing = 'in'
+            self.loadConfigInput(self.saveConfigInput)
+
+    def loadConfigInput(self, config):
+        self.sbCols.setValue(config['dx'])
+        self.sbRows.setValue(config['dy'])
+        self.Imask = config['imask'].copy()
+        self.updateMask()
+        self.ckbHremove.setChecked(config['hremove'])
 
     def ToggleProtect(self):
         if self.ckbProtect.isChecked():
@@ -180,6 +193,8 @@ class UI(QMainWindow):
         self.resetMask()
 
     def resetMask(self):
+        self.sbCols.setValue(0)
+        self.sbRows.setValue(0)
         self.ckbProtect.setCheckState(0)
         self.ckbRemove.setCheckState(0) 
         self.lbMask.hide()
