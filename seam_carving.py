@@ -11,7 +11,7 @@ import numpy as np
 import cv2
 from scipy import ndimage as ndi
 
-SEAM_COLOR = np.array([255, 200, 200])    # seam visualization color (BGR)
+SEAM_COLOR = np.array([0, 0, 255])    # seam visualization color (BGR)
 SHOULD_DOWNSIZE = True                    # if True, downsize image for faster carving
 DOWNSIZE_WIDTH = 500                      # resized image width if SHOULD_DOWNSIZE is True
 ENERGY_MASK_CONST = 100000.0              # large energy value for protective masking
@@ -55,10 +55,6 @@ def backward_energy(im):
     
     grad_mag = np.sqrt(np.sum(xgrad**2, axis=2) + np.sum(ygrad**2, axis=2))
 
-    if SHOW_ENERGY_MAP:
-        cv2.imshow("Energy map", grad_mag.astype(np.uint8))
-        cv2.waitKey(1)
-
     return grad_mag
 
 def forward_energy(im):
@@ -95,10 +91,6 @@ def forward_energy(im):
         argmins = np.argmin(mULR, axis=0)
         m[i] = np.choose(argmins, mULR)
         energy[i] = np.choose(argmins, cULR)
-    
-    if SHOW_ENERGY_MAP:
-        cv2.imshow("Energy map", energy.astype(np.uint8))
-        cv2.waitKey(1) 
         
     return energy
 
@@ -162,7 +154,7 @@ def remove_seam_grayscale(im, boolmask):
     h, w = im.shape[:2]
     return im[boolmask].reshape((h, w - 1))
 
-def get_minimum_seam(im, mask=None, remove_mask=None):
+def get_minimum_seam(im, mask=None, remove_mask=None, rot=False):
     """
     DP algorithm for finding the seam of minimum energy. Code adapted from 
     https://karthikkaranth.me/blog/implementing-seam-carving-with-python/
@@ -170,7 +162,14 @@ def get_minimum_seam(im, mask=None, remove_mask=None):
     h, w = im.shape[:2]
     energyfn = forward_energy if USE_FORWARD_ENERGY else backward_energy
     M = energyfn(im)
-
+    if SHOW_ENERGY_MAP:
+        if rot:
+            vis = rotate_image(M, False)
+        else:
+            vis = M
+        cv2.imshow("Energy map", vis.astype(np.uint8))
+        cv2.waitKey(1)
+    
     if mask is not None:
         M[np.where(mask > MASK_THRESHOLD)] = ENERGY_MASK_CONST
 
@@ -212,7 +211,7 @@ def get_minimum_seam(im, mask=None, remove_mask=None):
 
 def seams_removal(im, num_remove, mask=None, vis=False, rot=False):
     for _ in range(num_remove):
-        seam_idx, boolmask = get_minimum_seam(im, mask)
+        seam_idx, boolmask = get_minimum_seam(im, mask, rot)
         if vis:
             visualize(im, boolmask, rotate=rot)
         im = remove_seam(im, boolmask)
@@ -227,7 +226,7 @@ def seams_insertion(im, num_add, mask=None, vis=False, rot=False):
     temp_mask = mask.copy() if mask is not None else None
 
     for _ in range(num_add):
-        seam_idx, boolmask = get_minimum_seam(temp_im, temp_mask)
+        seam_idx, boolmask = get_minimum_seam(temp_im, temp_mask, rot)
         if vis:
             visualize(temp_im, boolmask, rotate=rot)
 
@@ -305,7 +304,7 @@ def object_removal(im, rmask, mask=None, vis=False, horizontal_removal=False, ke
             mask = rotate_image(mask, True)
 
     while len(np.where(rmask < MASK_THRESHOLD)[0]) > 0:
-        seam_idx, boolmask = get_minimum_seam(output, mask, rmask)
+        seam_idx, boolmask = get_minimum_seam(output, mask, rmask, horizontal_removal)
         if vis:
             visualize(output, boolmask, rotate=horizontal_removal)            
         output = remove_seam(output, boolmask)
