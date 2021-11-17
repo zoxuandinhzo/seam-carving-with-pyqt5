@@ -65,6 +65,7 @@ class UI(QMainWindow):
         self.btOpen.clicked.connect(self.OpenFile)
         self.btSave.clicked.connect(self.SaveFile)
         self.btRun.clicked.connect(self.RunSeam)
+        self.lbImg.mousePressEvent = self.CompareImg
         self.btClr.clicked.connect(self.ClearMask)
         self.btUndo.clicked.connect(self.UndoMask)
         self.ckbProtect.clicked.connect(self.ToggleProtect)
@@ -79,6 +80,7 @@ class UI(QMainWindow):
         #lưu ảnh dưới dạng np.array
         self.img_in = None
         self.img_out = None
+        self.imgShowing = None
 
         #tạo qimage để vẽ ảnh cho lbmask
         self.listImask = []
@@ -97,6 +99,7 @@ class UI(QMainWindow):
             self.img_in = cv2.imdecode(np.fromfile(fname[0], dtype=np.uint8), cv2.IMREAD_UNCHANGED)
             self.showInfor('File input\n- Path: {}\n- Size: {}'.format(fname[0], self.img_in.shape))
             self.showImage(self.img_in)
+            self.imgShowing = 'in'
             self.gbMask.setEnabled(True)
             self.gbSeam.setEnabled(True)
         else:
@@ -125,12 +128,25 @@ class UI(QMainWindow):
         dy = self.sbRows.value()
         mode = self.cmbMode.currentText()
         vis = self.ckbVis.isChecked()
-        im = self.img_in
+        if self.imgShowing == 'in':
+            im = self.img_in
+        else:
+            im = self.img_out
         mask = self.getMask(self.Imask, 255)
         rmask = self.getMask(self.Imask, 0)
         hremove = self.ckbHremove.isChecked()
         self.worker.setting(im, dx, dy, mask, rmask, hremove, mode, vis)
         self.worker.start()
+
+    def CompareImg(self, event):
+        if self.img_in is None or self.img_out is None:
+            return
+        if self.imgShowing == 'in':
+            self.showImage(self.img_out)
+            self.imgShowing = 'out'
+        else:
+            self.showImage(self.img_in)
+            self.imgShowing = 'in'
 
     def ToggleProtect(self):
         if self.ckbProtect.isChecked():
@@ -152,6 +168,7 @@ class UI(QMainWindow):
         self.img_out = self.worker.getResult()
         if self.img_out is not None:
             self.showImage(self.img_out)
+            self.imgShowing = 'out'
             self.showInfor('RUN DONE !\nFile output\n- Size: {}'.format(self.img_out.shape))
         else:
             self.showInfor('The image is not changed !')
