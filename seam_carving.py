@@ -211,7 +211,7 @@ def get_minimum_seam(im, mask=None, remove_mask=None, rot=False):
 
 def seams_removal(im, num_remove, mask=None, vis=False, rot=False):
     for _ in range(num_remove):
-        seam_idx, boolmask = get_minimum_seam(im, mask, rot)
+        seam_idx, boolmask = get_minimum_seam(im, mask, rot=rot)
         if vis:
             visualize(im, boolmask, rotate=rot)
         im = remove_seam(im, boolmask)
@@ -226,7 +226,7 @@ def seams_insertion(im, num_add, mask=None, vis=False, rot=False):
     temp_mask = mask.copy() if mask is not None else None
 
     for _ in range(num_add):
-        seam_idx, boolmask = get_minimum_seam(temp_im, temp_mask, rot)
+        seam_idx, boolmask = get_minimum_seam(temp_im, temp_mask, rot=rot)
         if vis:
             visualize(temp_im, boolmask, rotate=rot)
 
@@ -304,7 +304,7 @@ def object_removal(im, rmask, mask=None, vis=False, horizontal_removal=False, ke
             mask = rotate_image(mask, True)
 
     while len(np.where(rmask < MASK_THRESHOLD)[0]) > 0:
-        seam_idx, boolmask = get_minimum_seam(output, mask, rmask, horizontal_removal)
+        seam_idx, boolmask = get_minimum_seam(output, mask, rmask, rot=horizontal_removal)
         if vis:
             visualize(output, boolmask, rotate=horizontal_removal)            
         output = remove_seam(output, boolmask)
