@@ -192,7 +192,7 @@ class UI(QMainWindow):
         if all_seam is not None:
             cv2.imshow('all seam', all_seam)
             cv2.waitKey(1)
-            cv2.imwrite('all_seam.jpg', all_seam)
+            cv2.imwrite('./output/all_seam.jpg', all_seam)
         if self.img_out is not None:
             self.showImage(self.img_out)
             self.imgShowing = 'out'

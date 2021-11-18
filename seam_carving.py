@@ -363,6 +363,11 @@ def run_seam_carving(im, dx=0, dy=0, mask=None, rmask=None, hremove=False, krati
     else: 
         USE_FORWARD_ENERGY = False
     if vismap:
+        energyfn = forward_energy if USE_FORWARD_ENERGY else backward_energy
+        M = energyfn(im.astype(np.float64)) #.astype(np.float64)
+        # cv2.imshow('test', M.astype(np.uint8))
+        # cv2.waitKey(3000)
+        cv2.imwrite(f'./output/map_{energyfn.__name__}.jpg', M.astype(np.uint8))
         SHOW_ENERGY_MAP = True
     else:
         SHOW_ENERGY_MAP = False
@@ -407,7 +412,7 @@ def run_seam_carving(im, dx=0, dy=0, mask=None, rmask=None, hremove=False, krati
     cv2.destroyAllWindows()
 
     if SHOW_ALL_SEAM:
-        im_all = drawAllSeams(im)
+        im_all = drawAllSeams(im.copy())
 
     return output, im_all
 
