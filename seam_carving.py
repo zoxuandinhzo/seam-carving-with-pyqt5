@@ -18,6 +18,8 @@ ENERGY_MASK_CONST = 100000.0              # large energy value for protective ma
 MASK_THRESHOLD = 10                       # minimum pixel intensity for binary mask
 USE_FORWARD_ENERGY = True                 # if True, use forward energy algorithm
 SHOW_ENERGY_MAP = False
+SHOW_ALL_SEAM = False
+LIST_SEAMS = []
 
 ########################################
 # UTILITY CODE
@@ -212,6 +214,8 @@ def get_minimum_seam(im, mask=None, remove_mask=None, rot=False):
 def seams_removal(im, num_remove, mask=None, vis=False, rot=False):
     for _ in range(num_remove):
         seam_idx, boolmask = get_minimum_seam(im, mask, rot=rot)
+        if SHOW_ALL_SEAM: 
+            LIST_SEAMS.append([rot, seam_idx])
         if vis:
             visualize(im, boolmask, rotate=rot)
         im = remove_seam(im, boolmask)
@@ -227,6 +231,8 @@ def seams_insertion(im, num_add, mask=None, vis=False, rot=False):
 
     for _ in range(num_add):
         seam_idx, boolmask = get_minimum_seam(temp_im, temp_mask, rot=rot)
+        if SHOW_ALL_SEAM: 
+            LIST_SEAMS.append([rot, seam_idx])
         if vis:
             visualize(temp_im, boolmask, rotate=rot)
 
@@ -305,6 +311,8 @@ def object_removal(im, rmask, mask=None, vis=False, horizontal_removal=False, ke
 
     while len(np.where(rmask < MASK_THRESHOLD)[0]) > 0:
         seam_idx, boolmask = get_minimum_seam(output, mask, rmask, rot=horizontal_removal)
+        if SHOW_ALL_SEAM: 
+            LIST_SEAMS.append([horizontal_removal, seam_idx])
         if vis:
             visualize(output, boolmask, rotate=horizontal_removal)            
         output = remove_seam(output, boolmask)
@@ -321,19 +329,48 @@ def object_removal(im, rmask, mask=None, vis=False, horizontal_removal=False, ke
 
     return output        
 
+def drawAllSeams(im):
+    h,w,_ = im.shape
+    num_ver = sum(1 for seam in LIST_SEAMS if seam[0]==False)
+    pre_seam_ver = [[100000]*h]
+    pre_seam_hor = [[100000]*(w-num_ver)]
+    
+    for seam in LIST_SEAMS:
+        if seam[0]:
+            j = w-1
+            for idx, i in enumerate(seam[1]):
+                col = np.asarray(pre_seam_hor)[:,idx]
+                i += sum(1 for cell in col if cell<=i)
+                im[i][j] = SEAM_COLOR
+                j -= 1
+            pre_seam_hor.append(seam[1])
+        else:
+            i = 0
+            for idx, j  in enumerate(seam[1]):
+                row = np.asarray(pre_seam_ver).T[idx,:]
+                j += sum(1 for cell in row if cell<=j)
+                im[i][j] = SEAM_COLOR
+                i += 1
+            pre_seam_ver.append(seam[1])
 
-def run_seam_carving(im, dx=0, dy=0, mask=None, rmask=None, hremove=False, kratio=False, mode='Forward', vis=False, vismask=False, vismap=False, downsize=True):
+    return im
 
-    global USE_FORWARD_ENERGY, SHOW_ENERGY_MAP
+def run_seam_carving(im, dx=0, dy=0, mask=None, rmask=None, hremove=False, kratio=False, mode='Forward', vis=False, vismask=False, vismap=False, visall=False, downsize=True):
+
+    global USE_FORWARD_ENERGY, SHOW_ENERGY_MAP, SHOW_ALL_SEAM, LIST_SEAMS
     if mode=='Forward':
-        USE_FORWARD_ENERGY = True
-    else:
+        USE_FORWARD_ENERGY = True 
+    else: 
         USE_FORWARD_ENERGY = False
-
     if vismap:
         SHOW_ENERGY_MAP = True
     else:
         SHOW_ENERGY_MAP = False
+    if visall:
+        SHOW_ALL_SEAM = True
+    else:
+        SHOW_ALL_SEAM = False
+    LIST_SEAMS = []
 
     # downsize image for faster processing
     h, w = im.shape[:2]
@@ -355,7 +392,7 @@ def run_seam_carving(im, dx=0, dy=0, mask=None, rmask=None, hremove=False, krati
         if rmask is not None:
             rmask = resize(rmask, width=DOWNSIZE_WIDTH)
 
-    output = None
+    output = im_all = None
 
     # object removal mode
     if rmask is not None:
@@ -369,5 +406,8 @@ def run_seam_carving(im, dx=0, dy=0, mask=None, rmask=None, hremove=False, krati
             output = seam_carve(im, dy, dx, mask, vis)
     cv2.destroyAllWindows()
 
-    return output
+    if SHOW_ALL_SEAM:
+        im_all = drawAllSeams(im)
+
+    return output, im_all
 

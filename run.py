@@ -12,10 +12,10 @@ import cv2
 class MainBackgroundThread(QThread):
     def __init__(self):
         QThread.__init__(self)
-        self.im = self.dx = self.dy = self.mode = self.vis = self.vismask = None
-        self.vismap = self.mask = self.rmask = self.hremove = self.kratio = self.output = None
+        self.im = self.dx = self.dy = self.mode = self.vis = self.vismask = self.visall = None
+        self.vismap = self.mask = self.rmask = self.hremove = self.kratio = self.output = self.all_seam = None
 
-    def setting(self, im, dx, dy, mask, rmask, hremove, kratio, mode, vis, vismask, vismap):
+    def setting(self, im, dx, dy, mask, rmask, hremove, kratio, mode, vis, vismask, vismap, visall):
         self.im = im
         self.dx = dx
         self.dy = dy
@@ -27,12 +27,13 @@ class MainBackgroundThread(QThread):
         self.vis = vis
         self.vismask = vismask
         self.vismap = vismap
+        self.visall = visall
 
     def getResult(self):
-        return self.output
+        return self.output, self.all_seam
 
     def run(self):
-        self.output = run_seam_carving(self.im, self.dx, self.dy,  mask=self.mask, rmask=self.rmask, hremove=self.hremove, kratio=self.kratio, mode=self.mode, vis=self.vis, vismask=self.vismask, vismap=self.vismap)
+        self.output, self.all_seam = run_seam_carving(self.im, self.dx, self.dy,  mask=self.mask, rmask=self.rmask, hremove=self.hremove, kratio=self.kratio, mode=self.mode, vis=self.vis, vismask=self.vismask, vismap=self.vismap, visall=self.visall)
         if self.output is not None:
             self.output = self.output.astype(np.uint8)
 
@@ -82,7 +83,7 @@ class UI(QMainWindow):
         self.worker.finished.connect(self.onFinished)
         self.lbMask.setGeometry(self.lbImg.rect())
         self.lbMask.hide()
-        self.ckbASeam.hide() ######chưa cài đặt nên tạm ẩm
+        # self.ckbASeam.hide() ######chưa cài đặt nên tạm ẩm
 
         #khởi tạo các biến
         #lưu ảnh dưới dạng np.array
@@ -139,6 +140,7 @@ class UI(QMainWindow):
         vis = self.ckbProcess.isChecked()
         vismask = self.ckbMask.isChecked()
         vismap = self.ckbMap.isChecked()
+        visall = self.ckbASeam.isChecked()
         if self.imgShowing == 'in':
             im = self.img_in
         else:
@@ -148,7 +150,7 @@ class UI(QMainWindow):
         hremove = self.ckbHremove.isChecked()
         kratio = self.ckbRatio.isChecked()
         self.saveConfigInput = {'dx':dx, 'dy':dy, 'imask':self.Imask.copy(), 'hremove':hremove}
-        self.worker.setting(im, dx, dy, mask, rmask, hremove, kratio, mode, vis, vismask, vismap)
+        self.worker.setting(im, dx, dy, mask, rmask, hremove, kratio, mode, vis, vismask, vismap, visall)
         self.worker.start()
 
     def CompareImg(self, event):
@@ -186,7 +188,11 @@ class UI(QMainWindow):
             self.lbMask.hide()
 
     def onFinished(self):
-        self.img_out = self.worker.getResult()
+        self.img_out, all_seam = self.worker.getResult()
+        if all_seam is not None:
+            cv2.imshow('all seam', all_seam)
+            cv2.waitKey(1)
+            cv2.imwrite('all_seam.jpg', all_seam)
         if self.img_out is not None:
             self.showImage(self.img_out)
             self.imgShowing = 'out'
