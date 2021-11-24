@@ -1,11 +1,9 @@
-from os import pardir
 import sys
-from PyQt5.QtCore import QPoint, Qt, QThread, QSize, QRect
+from PyQt5.QtCore import QPoint, Qt, QThread
 from PyQt5.QtWidgets import QGroupBox, QMainWindow, QApplication, QPushButton, QCheckBox, QLabel, QFileDialog, QSpinBox, QComboBox, QCheckBox, QScrollArea, QWidget, QMessageBox
 from PyQt5 import uic
 from PyQt5.QtGui import QPainter, QPen, QPixmap, QImage, QColor
 import numpy as np
-# import seam_carving
 from seam_carving import run_seam_carving
 import cv2
 
