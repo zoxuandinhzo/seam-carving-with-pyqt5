@@ -144,6 +144,7 @@ class UI(QMainWindow):
             im = self.img_in
         else:
             im = self.img_out
+            self.img_in = self.img_out
         mask = self.getMask(self.Imask, 255)
         rmask = self.getMask(self.Imask, 0)
         hremove = self.ckbHremove.isChecked()
@@ -207,7 +208,7 @@ class UI(QMainWindow):
         if self.img_out is not None:
             self.showImage(self.img_out)
             self.imgShowing = 'out'
-            self.showInfor('RUN DONE !\nFile output\n- Size: {}'.format(self.img_out.shape))
+            self.showInfor('RUN DONE !\n- In size: {}\n- Out size: {}'.format(self.img_in.shape, self.img_out.shape))
         else:
             self.showInfor('The image is not changed !')
 
