@@ -1,12 +1,3 @@
-# USAGE:
-# python seam_carving.py (-resize | -remove) -im IM -out OUT [-mask MASK]
-#                        [-rmask RMASK] [-dy DY] [-dx DX] [-vis] [-hremove] [-backward_energy]
-# Examples:
-# python seam_carving.py -resize -im demos/ratatouille.jpg -out ratatouille_resize.jpg 
-#        -mask demos/ratatouille_mask.jpg -dy 20 -dx -200 -vis
-# python seam_carving.py -remove -im demos/eiffel.jpg -out eiffel_remove.jpg 
-#        -rmask demos/eiffel_mask.jpg -vis
-
 import numpy as np
 import cv2
 from scipy import ndimage as ndi
@@ -364,9 +355,7 @@ def run_seam_carving(im, dx=0, dy=0, mask=None, rmask=None, hremove=False, krati
         USE_FORWARD_ENERGY = False
     if vismap:
         energyfn = forward_energy if USE_FORWARD_ENERGY else backward_energy
-        M = energyfn(im.astype(np.float64)) #.astype(np.float64)
-        # cv2.imshow('test', M.astype(np.uint8))
-        # cv2.waitKey(3000)
+        M = energyfn(im.astype(np.float64))
         cv2.imwrite(f'./output/map_{energyfn.__name__}.jpg', M.astype(np.uint8))
         SHOW_ENERGY_MAP = True
     else:

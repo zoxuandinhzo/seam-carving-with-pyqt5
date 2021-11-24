@@ -40,7 +40,8 @@ class UI(QMainWindow):
         super(UI, self).__init__()
         uic.loadUi('seam_carving_gui.ui', self)
         self.setWindowTitle("SeamCarving with PyQt5")
-        #khởi tạo các object
+        
+        #initialize objects
         self.btOpen = self.findChild(QPushButton, 'bt_open')
         self.btSave = self.findChild(QPushButton, 'bt_save')
         self.btRun = self.findChild(QPushButton, 'bt_run')
@@ -67,7 +68,7 @@ class UI(QMainWindow):
         self.gbSeam = self.findChild(QGroupBox, 'gb_seam')
         self.worker = MainBackgroundThread()
 
-        #cài đặt thuộc tính object và sự kiện
+        #attribute for objects and events
         self.btOpen.clicked.connect(self.OpenFile)
         self.btSave.clicked.connect(self.SaveFile)
         self.btRun.clicked.connect(self.RunSeam)
@@ -81,16 +82,12 @@ class UI(QMainWindow):
         self.worker.finished.connect(self.onFinished)
         self.lbMask.setGeometry(self.lbImg.rect())
         self.lbMask.hide()
-        # self.ckbASeam.hide() ######chưa cài đặt nên tạm ẩm
 
-        #khởi tạo các biến
-        #lưu ảnh dưới dạng np.array
+        #initialize variables
         self.img_in = None
         self.img_out = None
         self.imgShowing = None
         self.saveConfigInput = None
-
-        #tạo qimage để vẽ ảnh cho lbmask
         self.listImask = []
         self.Imask = QImage(self.lbImg.size(), QImage.Format_ARGB32)
         self.bgColor = QColor(0, 255, 255, 50)
@@ -229,7 +226,6 @@ class UI(QMainWindow):
             self.drawing = True
             # make last point to the point of cursor
             self.lastPoint = event.pos()
-
             # creating painter object
             painter = QPainter(self.Imask)
             # set the pen of the painter
@@ -245,8 +241,7 @@ class UI(QMainWindow):
             # creating painter object
             painter = QPainter(self.Imask)
             # set the pen of the painter
-            painter.setPen(QPen(self.brushColor, self.brushSize,
-                            Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
+            painter.setPen(QPen(self.brushColor, self.brushSize, Qt.SolidLine, Qt.RoundCap, Qt.RoundJoin))
             # draw line from the last point of cursor to the current point
             # this will draw only one step
             painter.drawLine(self.lastPoint, event.pos())
