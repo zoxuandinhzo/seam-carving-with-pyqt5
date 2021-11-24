@@ -13,7 +13,7 @@ class MainBackgroundThread(QThread):
         self.im = self.dx = self.dy = self.mode = self.vis = self.vismask = self.visall = None
         self.vismap = self.mask = self.rmask = self.hremove = self.kratio = self.output = self.all_seam = None
 
-    def setting(self, im, dx, dy, mask, rmask, hremove, kratio, mode, vis, vismask, vismap, visall):
+    def setting(self, im, dx, dy, mask, rmask, hremove, kratio, mode, vis, vismask, vismap, visall, downsize):
         self.im = im
         self.dx = dx
         self.dy = dy
@@ -26,12 +26,13 @@ class MainBackgroundThread(QThread):
         self.vismask = vismask
         self.vismap = vismap
         self.visall = visall
+        self.downsize = downsize
 
     def getResult(self):
         return self.output, self.all_seam
 
     def run(self):
-        self.output, self.all_seam = run_seam_carving(self.im, self.dx, self.dy,  mask=self.mask, rmask=self.rmask, hremove=self.hremove, kratio=self.kratio, mode=self.mode, vis=self.vis, vismask=self.vismask, vismap=self.vismap, visall=self.visall)
+        self.output, self.all_seam = run_seam_carving(self.im, self.dx, self.dy,  mask=self.mask, rmask=self.rmask, hremove=self.hremove, kratio=self.kratio, mode=self.mode, vis=self.vis, vismask=self.vismask, vismap=self.vismap, visall=self.visall, downsize=self.downsize)
         if self.output is not None:
             self.output = self.output.astype(np.uint8)
 
@@ -40,7 +41,7 @@ class UI(QMainWindow):
         super(UI, self).__init__()
         uic.loadUi('seam_carving_gui.ui', self)
         self.setWindowTitle("SeamCarving with PyQt5")
-        
+
         #initialize objects
         self.btOpen = self.findChild(QPushButton, 'bt_open')
         self.btSave = self.findChild(QPushButton, 'bt_save')
@@ -57,6 +58,7 @@ class UI(QMainWindow):
         self.sbCols = self.findChild(QSpinBox, 'sb_cols')
         self.sbRows = self.findChild(QSpinBox, 'sb_rows')
         self.sbSize = self.findChild(QSpinBox, 'sb_size')
+        self.ckbDownsize = self.findChild(QCheckBox, 'ckb_downsize')
         self.cmbMode = self.findChild(QComboBox, 'cmb_mode')
         self.ckbProcess = self.findChild(QCheckBox, 'ckb_process')
         self.ckbMask = self.findChild(QCheckBox, 'ckb_mask')
@@ -77,6 +79,7 @@ class UI(QMainWindow):
         self.btUndo.clicked.connect(self.UndoMask)
         self.ckbProtect.clicked.connect(self.ToggleProtect)
         self.ckbRemove.clicked.connect(self.ToggleRemove)
+        self.ckbDownsize.clicked.connect(self.Downsize)
         self.sbSize.valueChanged.connect(lambda x: self.setBrushSize(x))
         self.scrBar.rangeChanged.connect(lambda x,y: self.scrBar.setValue(y))
         self.worker.finished.connect(self.onFinished)
@@ -131,6 +134,7 @@ class UI(QMainWindow):
         self.showInfor('START RUNNING !\nPLEASE WAIT !!!')
         dx = self.sbCols.value()
         dy = self.sbRows.value()
+        downsize = self.ckbDownsize.isChecked()
         mode = self.cmbMode.currentText()
         vis = self.ckbProcess.isChecked()
         vismask = self.ckbMask.isChecked()
@@ -145,7 +149,7 @@ class UI(QMainWindow):
         hremove = self.ckbHremove.isChecked()
         kratio = self.ckbRatio.isChecked()
         self.saveConfigInput = {'dx':dx, 'dy':dy, 'imask':self.Imask.copy(), 'hremove':hremove}
-        self.worker.setting(im, dx, dy, mask, rmask, hremove, kratio, mode, vis, vismask, vismap, visall)
+        self.worker.setting(im, dx, dy, mask, rmask, hremove, kratio, mode, vis, vismask, vismap, visall, downsize)
         self.worker.start()
 
     def CompareImg(self, event):
@@ -181,6 +185,18 @@ class UI(QMainWindow):
             self.brushColor = Qt.black
         else:
             self.lbMask.hide()
+
+    def Downsize(self):
+        if self.ckbDownsize.isChecked():
+            if self.imgShowing == 'in':
+                h, w = self.img_in.shape[:2]
+            else:
+                h, w = self.img_out.shape[:2]
+            if w < 500:
+                self.showInfor("Your image don't need to be downsized")
+                return
+            dim = (int(h * 500 / float(w)), 500)
+            self.showInfor('Your image will be downsized to ' + str(dim))
 
     def onFinished(self):
         self.img_out, all_seam = self.worker.getResult()
