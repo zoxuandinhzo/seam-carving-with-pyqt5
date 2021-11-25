@@ -86,6 +86,9 @@ class UI(QMainWindow):
         self.btSave.clicked.connect(self.SaveFile)
         self.btRun.clicked.connect(self.RunAndStop)
         self.lbImg.mousePressEvent = self.CompareImg
+        self.lbMask.mousePressEvent = self.mousePressEvent
+        self.lbMask.mouseMoveEvent = self.mouseMoveEvent
+        self.lbMask.mouseReleaseEvent = self.mouseReleaseEvent
         self.btClr.clicked.connect(self.ClearMask)
         self.btUndo.clicked.connect(self.UndoMask)
         self.ckbProtect.clicked.connect(self.ToggleProtect)
@@ -230,7 +233,7 @@ class UI(QMainWindow):
         if all_seam is not None:
             cv2.imshow('all seam', all_seam)
             cv2.waitKey(1)
-            cv2.imwrite('./output/all_seam.jpg', all_seam)
+            cv2.imwrite('all_seam.jpg', all_seam)
         if self.img_out is not None:
             self.showImage(self.img_out)
             self.imgShowing = 'out'

@@ -355,7 +355,7 @@ def run_seam_carving(im, dx=0, dy=0, mask=None, rmask=None, hremove=False, krati
     if vismap:
         energyfn = forward_energy if USE_FORWARD_ENERGY else backward_energy
         M = energyfn(im.astype(np.float64))
-        cv2.imwrite(f'./output/map_{energyfn.__name__}.jpg', M.astype(np.uint8))
+        cv2.imwrite(f'map_{energyfn.__name__}.jpg', M.astype(np.uint8))
         SHOW_ENERGY_MAP = True
     else:
         SHOW_ENERGY_MAP = False
