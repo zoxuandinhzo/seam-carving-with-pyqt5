@@ -1,6 +1,7 @@
 import sys
-from PyQt5.QtCore import QPoint, Qt, QThread
-from PyQt5.QtWidgets import QGroupBox, QMainWindow, QApplication, QPushButton, QCheckBox, QLabel, QFileDialog, QSpinBox, QComboBox, QCheckBox, QScrollArea, QWidget, QMessageBox
+import webbrowser
+from PyQt5.QtCore import QPoint, Qt, QThread, QUrl
+from PyQt5.QtWidgets import QAction, QGroupBox, QMainWindow, QApplication, QPushButton, QCheckBox, QLabel, QFileDialog, QSpinBox, QComboBox, QCheckBox, QScrollArea, QWidget, QMessageBox
 from PyQt5 import uic
 from PyQt5.QtGui import QPainter, QPen, QPixmap, QImage, QColor
 import numpy as np
@@ -73,6 +74,12 @@ class UI(QMainWindow):
         self.gbMask = self.findChild(QGroupBox, 'gb_mask')
         self.gbSeam = self.findChild(QGroupBox, 'gb_seam')
         self.worker = MainBackgroundThread()
+        self.actOpen = self.findChild(QAction, 'act_open_2')
+        self.actSave = self.findChild(QAction, 'act_save')
+        self.actExit = self.findChild(QAction, 'act_exit')
+        self.actSupport = self.findChild(QAction, 'act_support')
+        self.actReport = self.findChild(QAction, 'act_report')
+        self.actAbout = self.findChild(QAction, 'act_about')
 
         #attribute for objects and events
         self.btOpen.clicked.connect(self.OpenFile)
@@ -89,6 +96,12 @@ class UI(QMainWindow):
         self.worker.finished.connect(self.onFinished)
         self.lbMask.setGeometry(self.lbImg.rect())
         self.lbMask.hide()
+        self.actOpen.triggered.connect(self.OpenFile)
+        self.actSave.triggered.connect(self.SaveFile)
+        self.actExit.triggered.connect(lambda:self.close())
+        self.actSupport.triggered.connect(lambda:webbrowser.open('https://github.com/zoxuandinhzo/seam-carving-with-pyqt5'))
+        self.actReport.triggered.connect(lambda:webbrowser.open('https://github.com/zoxuandinhzo/seam-carving-with-pyqt5/issues'))
+        self.actAbout.triggered.connect(lambda:self.About())
 
         #initialize variables
         self.img_in = None
@@ -336,6 +349,17 @@ class UI(QMainWindow):
         if self.img_in is not None:
             self.showImage(self.img_in)
         QMainWindow.resizeEvent(self, event)
+
+    def About(self):
+        dlg = QMessageBox(self)
+        dlg.setWindowTitle("About")
+        dlg.setText("Seam Carving GUI with PyQt5 and Python\n" +
+                    "-> Version: 1.0\n" +
+                    "-> Lisence: None\n" + 
+                    "-> Member: 18520603@gm.uit.edu.vn and 18520506@gm.uit.edu.vn\n" +
+                    "-> Course: CS406.M11.KHCL\n" +
+                    "-> University of Information Technology - UIT !!!")
+        dlg.exec()
 
 def ArrayToQPixmap(cv_img):
     """Convert from an opencv image to QPixmap"""
