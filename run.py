@@ -332,6 +332,11 @@ class UI(QMainWindow):
         else:
             event.ignore()
 
+    def resizeEvent(self, event):
+        if self.img_in is not None:
+            self.showImage(self.img_in)
+        QMainWindow.resizeEvent(self, event)
+
 def ArrayToQPixmap(cv_img):
     """Convert from an opencv image to QPixmap"""
     h, w, ch = cv_img.shape
