@@ -36,6 +36,10 @@ class MainBackgroundThread(QThread):
         if self.output is not None:
             self.output = self.output.astype(np.uint8)
 
+    def stop(self):
+        self.terminate()
+        cv2.destroyAllWindows()
+
 class UI(QMainWindow):
     def __init__(self):
         super(UI, self).__init__()
@@ -73,7 +77,7 @@ class UI(QMainWindow):
         #attribute for objects and events
         self.btOpen.clicked.connect(self.OpenFile)
         self.btSave.clicked.connect(self.SaveFile)
-        self.btRun.clicked.connect(self.RunSeam)
+        self.btRun.clicked.connect(self.RunAndStop)
         self.lbImg.mousePressEvent = self.CompareImg
         self.btClr.clicked.connect(self.ClearMask)
         self.btUndo.clicked.connect(self.UndoMask)
@@ -126,6 +130,14 @@ class UI(QMainWindow):
             self.showInfor(f'File save done !\n- Path: {fname[0]}')
         else:
             self.showInfor('File not save !')
+
+    def RunAndStop(self):
+        if self.btRun.text() == 'Run':
+            self.RunSeam()
+            self.btRun.setText('Stop')
+        else:
+            self.worker.stop()
+            self.btRun.setText('Run')
 
     def RunSeam(self):
         if self.img_in is None:
@@ -200,6 +212,7 @@ class UI(QMainWindow):
             self.showInfor('Your image will be downsized to ' + str(dim))
 
     def onFinished(self):
+        self.btRun.setText('Run')
         self.img_out, all_seam = self.worker.getResult()
         if all_seam is not None:
             cv2.imshow('all seam', all_seam)
