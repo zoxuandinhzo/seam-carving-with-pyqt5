@@ -7,6 +7,7 @@ from PyQt5.QtGui import QPainter, QPen, QPixmap, QImage, QColor
 import numpy as np
 from seam_carving import run_seam_carving
 import cv2
+import time
 
 class MainBackgroundThread(QThread):
     def __init__(self):
@@ -107,6 +108,7 @@ class UI(QMainWindow):
         self.actAbout.triggered.connect(lambda:self.About())
 
         #initialize variables
+        self.runTime = 0
         self.img_in = None
         self.img_out = None
         self.imgShowing = None
@@ -179,6 +181,7 @@ class UI(QMainWindow):
         kratio = self.ckbRatio.isChecked()
         self.saveConfigInput = {'dx':dx, 'dy':dy, 'imask':self.Imask.copy(), 'hremove':hremove}
         self.worker.setting(im, dx, dy, mask, rmask, hremove, kratio, mode, vis, vismask, vismap, visall, downsize)
+        self.runTime = time.time()
         self.worker.start()
 
     def CompareImg(self, event):
@@ -237,7 +240,8 @@ class UI(QMainWindow):
         if self.img_out is not None:
             self.showImage(self.img_out)
             self.imgShowing = 'out'
-            self.showInfor('RUN DONE !\n- In size: {}\n- Out size: {}'.format(self.img_in.shape, self.img_out.shape))
+            self.runTime = time.time() - self.runTime
+            self.showInfor('RUN DONE !\n- In size: {}\n- Out size: {}\n- Run time: {:.2f}s'.format(self.img_in.shape, self.img_out.shape, self.runTime))
         else:
             self.showInfor('The image is not changed !')
 
