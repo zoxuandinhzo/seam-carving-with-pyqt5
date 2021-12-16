@@ -26,30 +26,27 @@ Sản phẩm gồm có 2 phần chính là **mô phỏng** và **đánh giá** h
 
 ## Sản phẩm demo
 - File nén chứa chương trình seamcarving đuôi exe: [seamcarving_v2.0.rar](https://drive.google.com/file/d/1cTlWcAjq4gvWBo3R0YrccqHc7E0zmTXX/view?usp=sharing)
-- Chỉ cần giải nén và chạy file exe là có thể bắt đầu sử dụng trên máy tính hệ điều hành window.
+- Chỉ cần tải, giải nén và chạy file exe là có thể bắt đầu sử dụng trên máy tính hệ điều hành window.
 
 ## Ví dụ
 - Một số kết quả ảnh dược chạy bằng chương trình seamcarving
 
 ## Link tham khảo và lời cảm ơn
-- Các bài viết:
 
-https://www.youtube.com/watch?v=rpB6zQNsbQU
+Các bài viết về seamcarving:
+- https://www.youtube.com/watch?v=rpB6zQNsbQU
+- https://vnoi.info/wiki/cs/imageprocessing/Seam-Carving.md
+- https://avikdas.com/2019/07/29/improved-seam-carving-with-forward-energy.html?fbclid=IwAR2IBEFqflEWKSh2KF1ND7OmKP0L31By0-Cfg-1BSp2SwUmX4k3W3xHAriQ
+- https://karthikkaranth.me/blog/implementing-seam-carving-with-python/
 
-https://vnoi.info/wiki/cs/imageprocessing/Seam-Carving.md
+Các repo github code seamcarving:
+- https://github.com/li-plus/seam-carving
+- https://github.com/andrewdcampbell/seam-carving
+- https://github.com/vivianhylee/seam-carving
+- https://github.com/axu2/improved-seam-carving
 
-https://avikdas.com/2019/07/29/improved-seam-carving-with-forward-energy.html?fbclid=IwAR2IBEFqflEWKSh2KF1ND7OmKP0L31By0-Cfg-1BSp2SwUmX4k3W3xHAriQ
+Hướng dẫn lập trình PyQt5:
+- https://www.youtube.com/playlist?list=PLzMcBGfZo4-lB8MZfHPLTEHO9zJDDLpYj
+- https://www.youtube.com/playlist?list=PLCC34OHNcOtpmCA8s_dpPMvQLyHbvxocY
 
-https://karthikkaranth.me/blog/implementing-seam-carving-with-python/
-
-- Các repo github:
-
-https://github.com/li-plus/seam-carving
-
-https://github.com/andrewdcampbell/seam-carving
-
-https://github.com/vivianhylee/seam-carving
-
-https://github.com/axu2/improved-seam-carving
-
-### Xin chân thành cảm ơn các tác giả của những bài báo, bài viết và source code trên đã giúp nhóm thực hiện đồ án này !!
+### **Xin chân thành cảm ơn các tác giả của những bài báo, bài viết, source code và video hướng dẫn trên đã giúp nhóm thực hiện đồ án này !!**
